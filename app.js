@@ -1,26 +1,80 @@
-Vue.component("board", {
+const board = Vue.component("board", {
     props: {
-        boxes: {
-            type: Array,
+        boardId: {
+            type: String,
             required: true
         }
     },
+
+    created() {
+        this.boardId;
+        getBoard(this.boardId).then((board) => {
+            let newBoard = board.data().board;
+
+            // Check that all required fields exist
+            if (!newBoard) newBoard = {}
+            if (!newBoard.title) newBoard.title = "";
+            if (!newBoard.boxes) newBoard.boxes = [];
+            else {
+                newBoard.boxes.forEach((box) => {
+                    if (!box.cards) box.cards = [];
+                });
+            }
+
+            this.board = newBoard;
+
+            this.isLoading = false;
+            this.isBoardSelected = true;
+
+            this.$nextTick(() => this.$refs.title.value = this.board.title);
+
+        }).catch((err) => {
+            if (this.$refs.message)
+                this.$refs.message.innerText = "Failed to load board";
+            console.error(err);
+        });
+
+    },
+
     data: function() {
         return {
+            isLoading: true,
+            board: {}
         }
     },
+    
     methods: {
         addBox: function (newBox) {
-            this.boxes.push(newBox);
+            this.board.boxes.push(newBox);
+        },
+        
+        saveBoard: function() {
+            updateBoard(this.board, this.boardId).then(() => {
+                // update last saved timestamp
+            }).catch(() => {
+                // failed to save
+            });
+        },
+
+        updateTitle: function() {
+            this.board.title = this.$refs.title.value;
         }
     },
+    
     template: `
-        <div id="wrapper">
-            <div id="board">
-                <div v-for="box in boxes">
-                    <box v-bind="box"></box>
+        <p v-if='isLoading' ref="message" >Loading...</p>
+        <div v-else>
+            <div id="board-header">
+                <input type="text" value="Title" v-on:keyup="updateTitle" ref="title">
+                <button v-on:click="saveBoard">Save</button>
+            </div>
+            <div id="wrapper">
+                <div id="board">
+                    <div v-for="box in board.boxes">
+                        <box v-bind="box"></box>
+                    </div>
+                    <blankbox @add-box="addBox"></blankbox>
                 </div>
-                <blankbox @add-box="addBox"></blankbox>
             </div>
         </div>
     `
@@ -154,114 +208,81 @@ Vue.component("blankcard", {
     `
 });
 
-Vue.component("boardselector", {
-    props: {
-        boardRefs: {
-            type: Array,
-            required: true
-        }
+const boardselector = Vue.component("boardselector", {
+    created() {
+        boardList().then((boardRefs) => {
+            this.boardRefs = boardRefs;
+            this.isLoading = false;
+        })
     },
+    
+    data: function () {
+        return {
+            isLoading: true,
+            boardRefs: []
+        };
+    },
+
     methods : {
         selectBoard: function(boardId) {
-            this.$emit('select-board', boardId);
+            router.push("/board/" + boardId);
+        },
+
+        createBoard: function() {
+            
+            let newBoard = {
+                title: "New Board",
+                boxes: []
+            }
+
+            createBoard(newBoard).then((docRef) => {
+                this.selectBoard(docRef.id);
+            }).catch((err) => {
+                // failed to create new board
+            });
+        
         }
+
     },
+    
     template: `
-        <div id="board-selector" >
+        <p v-if='isLoading' ref="message" >Loading...</p>
+        <div v-else id="board-selector" >
             <div v-for="boardRef in boardRefs">
                 <div class="board" v-on:click="selectBoard(boardRef.id)">
                     <span class="title">{{ boardRef.data().board.title }}</span>
                 </div>
             </div>
+            <div class="board" v-on:click="createBoard()">
+                <span class="title">+ New Board</span>
+            </div>
         </div>
     `
 });
 
+const NotFoundComponent = {
+    template: `
+        <h1>404 Not Found</h1>
+    `
+};
+
+const router = new VueRouter({
+    history: true,
+    routes: [
+        {   
+            path: '/', 
+            component: boardselector
+        },
+        { 
+            path: '/board/:boardId',
+            component: board, 
+            props: true
+        },
+        { path: '*', component: NotFoundComponent }
+    ]
+});
+
 var app = new Vue({
     el: '#app',
-    
-    data: {
-        boardId: "",
-        isLoading: true,
-        isBoardSelected: false,
-        boardRefs: [],
-        board: {
-            boxes: []
-        }
-    },
-
-    created() {
-
-        let url = new URL(window.location.href);
-        this.boardId = url.searchParams.get("id");
-
-        if (!this.boardId) {
-            boardList().then((boardRefs) => {
-
-                this.boardRefs = boardRefs;
-                this.isLoading = false;
-            })
-        } else {
-            getBoard(this.boardId).then((board) => {
-                let newBoard = board.data().board;
-
-                // Check that all required fields exist
-                if (!newBoard) newBoard = {}
-                if (!newBoard.title) newBoard.title = "";
-                if (!newBoard.boxes) newBoard.boxes = [];
-                else {
-                    newBoard.boxes.forEach((box) => {
-                        if (!box.cards) box.cards = [];
-                    });
-                }
-
-                this.board = newBoard;
-
-                this.isLoading = false;
-                this.isBoardSelected = true;
-
-                this.$nextTick(() => this.$refs.title.value = this.board.title);
-
-            }).catch((err) => {
-                if (this.$refs.message)
-                    this.$refs.message.innerText = "Failed to load board";
-                console.error(err);
-            });
-        }
-        
-
-    },
-    
-    methods : {
-        
-        saveBoard: function() {
-            updateBoard(this.board, this.boardId).then(() => {
-                // update last saved timestamp
-            }).catch(() => {
-                // failed to save
-            });
-        },
-
-        loadBoard: function(newBoardId) {
-            let newurl = window.location.href + "?id=" + newBoardId;
-            window.location.href = newurl;
-        },
-
-        updateTitle: function() {
-            this.board.title = this.$refs.title.value;
-        }
-
-    },
-
-    template: `
-        <p v-if='isLoading' ref="message" >Loading...</p>
-        <div v-else-if='isBoardSelected'>
-            <div id="board-header">
-                <input type="text" value="Title" v-on:keyup="updateTitle" ref="title">
-                <button v-on:click="saveBoard">Save</button>
-            </div>
-            <board :boxes="board.boxes"></board>
-        </div>
-        <boardselector v-else :boardRefs="boardRefs" @select-board="loadBoard"></boardselector>
-    `
+    router
 });
