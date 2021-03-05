@@ -12,8 +12,8 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();  
 const boardCollection = db.collection("Board");
 
-const  createBoard =  function (newBoard) {
-    return boardCollection.add(newBoard);
+const  createBoard =  function (board) {
+    return boardCollection.add({board});
 }
     
 const updateBoard = function (board, id) {
