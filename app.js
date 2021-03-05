@@ -253,7 +253,7 @@ const boardselector = Vue.component("boardselector", {
                     <span class="title">{{ boardRef.data().board.title }}</span>
                 </div>
             </div>
-            <div class="board" v-on:click="createBoard()">
+            <div class="board" id="emptyboard" v-on:click="createBoard()">
                 <span class="title">+ New Board</span>
             </div>
         </div>
