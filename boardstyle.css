@@ -79,7 +79,7 @@ body {
 
     border: 1px solid black;
     border-radius: 5px;
-    background-color: rgb(241, 241, 241);
+    background-color: rgb(255, 255, 255);
 
     float: left;
     margin: 5px;
@@ -102,4 +102,13 @@ body {
 
 .title {
     pointer-events: none;
+}
+
+#emptyboard {
+    background-color: rgb(255, 255, 255);
+    opacity: 65%;
+}
+
+#emptyboard:hover {
+    opacity: 100%;
 }
