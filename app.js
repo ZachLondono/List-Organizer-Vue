@@ -26,7 +26,11 @@ const board = Vue.component("board", {
             this.isLoading = false;
             this.isBoardSelected = true;
 
-            this.$nextTick(() => this.$refs.title.value = this.board.title);
+            this.$nextTick(() => {
+                this.$refs.title.value = this.board.title;
+                this.updateTitleWidth();
+                this.updateWidth();
+            });
 
         }).catch((err) => {
             if (this.$refs.message)
@@ -46,11 +50,20 @@ const board = Vue.component("board", {
     methods: {
         addBox: function (newBox) {
             this.board.boxes.push(newBox);
+            this.$nextTick(() => this.updateWidth());
+        },
+
+        removeBox: function (box) {
+            if (!this.board.boxes) return;
+            let index = this.board.boxes.indexOf(box);
+            if (index > -1) this.board.boxes.splice(index, 1);
         },
         
         saveBoard: function() {
+            this.$refs.saveMsg.innerText = "Saving...";
             updateBoard(this.board, this.boardId).then(() => {
                 // update last saved timestamp
+                this.$refs.saveMsg.innerText= "Saved";
             }).catch(() => {
                 // failed to save
             });
@@ -58,23 +71,43 @@ const board = Vue.component("board", {
 
         updateTitle: function() {
             this.board.title = this.$refs.title.value;
+            this.$refs.title.setSelectionRange(0, 0);
+            this.saveBoard();
+        },
+
+        updateTitleWidth: function() {
+            let titleElem = this.$refs.title;
+            let newWidth = ((titleElem.value.length + 1) * 10);
+            titleElem.style.width = (newWidth > 600 ? 600 : newWidth) + 'px';
+        },
+
+        updateWidth : function () {                                                                                                                                       
+            let boxElems = this.$refs.boardCnt.children;
+
+            let totalWidth = 0;
+            for (i = 0; i < boxElems.length; i++) {
+                let box = boxElems[i];
+                totalWidth += box.offsetWidth;
+                totalWidth += parseInt(getComputedStyle(box).marginLeft);
+                totalWidth += parseInt(getComputedStyle(box).marginRight);
+            }
+            
+            this.$refs.boardCnt.style.width = totalWidth + "px";
         }
+
     },
     
     template: `
         <p v-if='isLoading' ref="message" >Loading...</p>
         <div v-else>
             <div id="board-header">
-                <input type="text" value="Title" v-on:keyup="updateTitle" ref="title">
-                <button v-on:click="saveBoard">Save</button>
+                <input id="board-title" type="text" value="Title" v-on:keyup="updateTitleWidth" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title" >
+                <span style="font-size:12px" ref="saveMsg">Saved</span>
             </div>
-            <div id="wrapper">
-                <div id="board">
-                    <div v-for="box in board.boxes">
-                        <box v-bind="box"></box>
-                    </div>
-                    <blankbox @add-box="addBox"></blankbox>
-                </div>
+            <div id="wrapper" ref="boardCnt">
+                <!-- TODO: add key to boxes -->
+                <box v-for="box in board.boxes" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox"></box>
+                <blankbox @add-box="addBox" @edit="saveBoard"></blankbox>
             </div>
         </div>
     `
@@ -82,27 +115,46 @@ const board = Vue.component("board", {
 
 Vue.component("box", {
     props: {
-        title: {
-            type: String,
-            required: true
-        },
-        cards: {
-            type: Array,
-            required: true
+        boxRef: {
+            title: {
+                type: String,
+                required: true
+            },
+            cards: {
+                type: Array,
+                required: true
+            }
         }
     },
     data: function() {
-        return {}
+        return {
+            options: [
+                "Rename",
+                "Delete"
+            ]
+        }
     },
     methods: {
         addCard: function (newCard) {
-            this.cards.push(newCard);
+            this.boxRef.cards.push(newCard);
+            this.$emit('edit');
+        },
+
+        removeBox: function() {
+            this.$emit('remove-box', this.boxRef);
+            this.$emit('edit');
+        },
+
+        menuSelect: function(index) {
+            if (this.options[index] === "Delete") this.removeBox();
         }
     },
     template: `
         <div class="box">
-            <span class="box-title"> {{ title }} </span>
-            <div v-for="card in cards">
+            <span class="box-title"> {{ boxRef.title }} </span>
+            <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
+            <!-- <button v-on:click="removeBox">Delete</button> -->
+            <div v-for="card in boxRef.cards">
                 <card v-bind="card"></card>
             </div>
             <blankcard @add-card="addCard"></blankcard>
@@ -164,6 +216,7 @@ Vue.component("blankbox", {
             };
 
             this.$emit('add-box', box);
+            this.$emit('edit');
         }
     },
     template: `
@@ -248,17 +301,92 @@ const boardselector = Vue.component("boardselector", {
     template: `
         <p v-if='isLoading' ref="message" >Loading...</p>
         <div v-else id="board-selector" >
+            <div class="board" id="emptyboard" v-on:click="createBoard()">
+                <span class="title">+ New Board</span>
+            </div>
             <div v-for="boardRef in boardRefs">
                 <div class="board" v-on:click="selectBoard(boardRef.id)">
                     <span class="title">{{ boardRef.data().board.title }}</span>
                 </div>
             </div>
-            <div class="board" id="emptyboard" v-on:click="createBoard()">
-                <span class="title">+ New Board</span>
+        </div>
+    `
+});
+
+const appHeader = Vue.component("appHeader", { 
+    template: `
+        <div v-else id="header" >
+        </div>
+    `
+});
+
+const pageheader = Vue.component("pageheader", {
+    methods: {
+        goHome: function () {
+            router.push("/");
+        }
+    },
+    template: `
+        <div>
+            <div id="header-padding"></div>
+            <div id="header" ref="header">
+                <div class="button" style="margin-top: auto" v-on:click="goHome">
+                    <span style="margin: 10px">Home</span>
+                </div>
             </div>
         </div>
     `
 });
+
+Vue.component("kebabmenu", {
+    
+    created() {
+        document.addEventListener.call(window, "click", event => {
+            if (event.target != this.$refs.menu) {
+                this.toggleMenu();
+            }
+        });
+    },
+    
+    props: {
+        options: {
+            type: Array,
+            required: true
+        }
+    },
+    
+    data: function() {
+        return {
+            isOpen: false
+        }
+    },
+
+    methods: {
+        
+        toggleMenu: function() {
+            let contents = this.$refs.contents;
+            contents.forEach((content) => content.style.display = this.isOpen ? "none" : "block");
+            this.isOpen = !this.isOpen;
+        },
+
+        optionSlected: function(option) {
+            let index = this.options.indexOf(option);
+            if (index > -1) this.$emit("kebab-selected", index);
+        }
+
+    },
+
+    template: `
+        <div class="kebab" style="float:right" v-on:click="toggleMenu" ref="menu">
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="dopdown-options">
+                <span v-for="option in options" ref="contents" v-on:click="optionSlected(option)" class="dopdown-option"><span class="dropdown-option-text">{{ option }}</span></span>
+            </div>
+        </div>
+    `
+})
 
 const NotFoundComponent = {
     template: `
