@@ -100,6 +100,7 @@ const board = Vue.component("board", {
     template: `
         <p v-if='isLoading' ref="message" >Loading...</p>
         <div v-else>
+            <div id="board-header-padding"></div>
             <div id="board-header">
                 <input id="board-title" type="text" value="Title" v-on:keyup="updateTitleWidth" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title" >
                 <span style="font-size:12px" ref="saveMsg">Saved</span>
@@ -154,9 +155,7 @@ Vue.component("box", {
             <span class="box-title"> {{ boxRef.title }} </span>
             <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
             <!-- <button v-on:click="removeBox">Delete</button> -->
-            <div v-for="card in boxRef.cards">
-                <card v-bind="card"></card>
-            </div>
+            <card v-for="card in boxRef.cards" v-bind="card"></card>
             <blankcard @add-card="addCard"></blankcard>
         </div>
     `
@@ -342,7 +341,7 @@ Vue.component("kebabmenu", {
     
     created() {
         document.addEventListener.call(window, "click", event => {
-            if (event.target != this.$refs.menu) {
+            if (event.target != this.$refs.menu && this.isOpen) {
                 this.toggleMenu();
             }
         });
@@ -377,7 +376,7 @@ Vue.component("kebabmenu", {
     },
 
     template: `
-        <div class="kebab" style="float:right" v-on:click="toggleMenu" ref="menu">
+        <div class="kebab" v-on:click="toggleMenu" ref="menu">
             <div class="circle"></div>
             <div class="circle"></div>
             <div class="circle"></div>
