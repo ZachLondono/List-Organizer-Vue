@@ -42,7 +42,7 @@ body {
     padding-right: 5px;
 }
 
-#board-title {
+.editable-title {
     font-weight:bold;
     background: transparent;
     border: 1px solid rgba(0,0,0,0);
@@ -50,7 +50,7 @@ body {
     padding: 3px;
 }
 
-#board-title:hover {
+.editable-title:hover {
     border: 1px solid lightgrey;
 }
 

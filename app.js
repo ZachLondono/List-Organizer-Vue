@@ -102,7 +102,7 @@ const board = Vue.component("board", {
         <div v-else>
             <div id="board-header-padding"></div>
             <div id="board-header">
-                <input id="board-title" type="text" value="Title" v-on:keyup="updateTitleWidth" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title" >
+                <input class="editable-title" type="text" value="Title" v-on:keyup="updateTitleWidth" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title" >
                 <span style="font-size:12px" ref="saveMsg">Saved</span>
             </div>
             <div id="wrapper" ref="boardCnt">
@@ -148,11 +148,16 @@ Vue.component("box", {
 
         menuSelect: function(index) {
             if (this.options[index] === "Delete") this.removeBox();
-        }
+        },
+
+        updateTitle: function() {
+            this.boxRef.title = this.$refs.title.value;
+            this.$emit('edit');
+        },
     },
     template: `
         <div class="box">
-            <span class="box-title"> {{ boxRef.title }} </span>
+            <input class="editable-title" :value="boxRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
             <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
             <!-- <button v-on:click="removeBox">Delete</button> -->
             <card v-for="card in boxRef.cards" v-bind="card"></card>
