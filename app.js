@@ -70,9 +70,11 @@ const board = Vue.component("board", {
         },
 
         updateTitle: function() {
-            this.board.title = this.$refs.title.value;
+            if (this.board.title != this.$refs.title.value) {
+                this.board.title = this.$refs.title.value;
+                this.saveBoard();
+            }
             this.$refs.title.setSelectionRange(0, 0);
-            this.saveBoard();
         },
 
         updateTitleWidth: function() {
@@ -148,18 +150,21 @@ Vue.component("box", {
 
         menuSelect: function(index) {
             if (this.options[index] === "Delete") this.removeBox();
+            if (this.options[index] === "Rename") this.$refs.title.focus();
         },
 
         updateTitle: function() {
-            this.boxRef.title = this.$refs.title.value;
-            this.$emit('edit');
+            if (this.boxRef.title != this.$refs.title.value) {
+                this.boxRef.title = this.$refs.title.value;
+                this.$emit('edit');
+            }
         },
     },
     template: `
         <div class="box">
             <input class="editable-title" :value="boxRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
             <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
-            <!-- <button v-on:click="removeBox">Delete</button> -->
+            <!-- TODO: add key to cards -->
             <card v-for="card in boxRef.cards" v-bind="card"></card>
             <blankcard @add-card="addCard"></blankcard>
         </div>
@@ -174,7 +179,7 @@ Vue.component("card", {
         }
     },
     template: `
-        <div class="card">
+        <div class="card">      
             <span class="card-title"> {{ title }} </span>
         </div>
     `
