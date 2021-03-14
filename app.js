@@ -43,7 +43,13 @@ const board = Vue.component("board", {
     data: function() {
         return {
             isLoading: true,
-            board: {}
+            board: {},
+            displayCardMenu: false,
+            cardMenuCardRef: {
+                title: "",
+                list: []
+            },
+            cardMenuBoxRef: {}
         }
     },
     
@@ -95,7 +101,41 @@ const board = Vue.component("board", {
             }
             
             this.$refs.boardCnt.style.width = totalWidth + "px";
+        },
+
+        showCardMenu: function (selectedCard, boxRef) {
+            this.cardMenuBoxRef = boxRef;
+            cards = this.cardMenuBoxRef.cards;
+            for (i = 0; i < cards.length; i++) {
+                if (cards[i].title == selectedCard.title) {
+                    // TODO: pass reference to card object when creating card, because cards may have the same title
+                    this.displayCardMenu = true;
+                    this.cardMenuCardRef = cards[i];
+                    return;
+                } 
+            }
+
+        },
+
+        hideCardMenu: function () {
+            this.displayCardMenu = false;
+        },
+
+        updateCard: function (updatedCard) {
+            cards = this.cardMenuBoxRef.cards;
+            for (i = 0; i < cards.length; i++) {
+                if (cards[i].title == this.cardMenuCardRef.title) {
+
+                    cards[i].title = updatedCard.title;
+                    cards[i].list = updatedCard.list;
+                    this.saveBoard();
+                    return;
+
+                } 
+            }
+
         }
+
 
     },
     
@@ -109,9 +149,10 @@ const board = Vue.component("board", {
             </div>
             <div id="wrapper" ref="boardCnt">
                 <!-- TODO: add key to boxes -->
-                <box v-for="box in board.boxes" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox"></box>
+                <box v-for="box in board.boxes" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox" @card-selected="showCardMenu"></box>
                 <blankbox @add-box="addBox" @edit="saveBoard"></blankbox>
             </div>
+            <cardmenu v-if="displayCardMenu" v-bind="cardMenuCardRef" @updatelist="updateCard" @close-card-menu="hideCardMenu"></cardmenu>
         </div>
     `
 });
@@ -159,6 +200,10 @@ Vue.component("box", {
                 this.$emit('edit');
             }
         },
+
+        showCardMenu: function(selectedCard) {
+            this.$emit("card-selected", selectedCard, this.boxRef);
+        }
     },
     template: `
         <div class="box" style="display:flex; flex-direction:column;flex:0 0 auto;">
@@ -168,7 +213,7 @@ Vue.component("box", {
             </div>
             <!-- TODO: add key to cards -->
             <div style="overflow-y:auto;flex:1 1 auto;">
-                <card v-for="card in boxRef.cards" v-bind="card"></card>
+                <card v-for="card in boxRef.cards" v-bind="card" @selected="showCardMenu"></card>
             </div>
             <blankcard @add-card="addCard"></blankcard>
         </div>
@@ -180,10 +225,27 @@ Vue.component("card", {
         title: {
             type: String,
             required: true
+        },
+        list: {
+            type: Array,
+            required: true
         }
     },
+    
+    methods: {
+
+        selected: function() {
+            card = {
+                title: this.title,
+                list: this.list
+            }
+            this.$emit("selected", card);
+        }
+
+    },
+
     template: `
-        <div class="card">      
+        <div class="card" v-on:click="selected">      
             <span class="card-title"> {{ title }} </span>
         </div>
     `
@@ -255,6 +317,7 @@ Vue.component("blankcard", {
 
             let card = {
                 title: newTitle,
+                list: []
             };
 
             this.$emit('add-card', card);
@@ -326,13 +389,6 @@ const boardselector = Vue.component("boardselector", {
     `
 });
 
-const appHeader = Vue.component("appHeader", { 
-    template: `
-        <div v-else id="header" >
-        </div>
-    `
-});
-
 const pageheader = Vue.component("pageheader", {
     methods: {
         goHome: function () {
@@ -346,6 +402,76 @@ const pageheader = Vue.component("pageheader", {
                 <div class="button" style="margin-top: auto" v-on:click="goHome">
                     <span style="margin: 10px">Home</span>
                 </div>
+            </div>
+        </div>
+    `
+});
+
+Vue.component("cardmenu", {
+    props: {
+        title: {
+            type: String,
+            required: true
+        },
+        list: {
+            type: Array,
+            required: true
+        }
+    },
+    
+    methods: {
+
+        updateList: function() {
+            card = {
+                title: this.title,
+                list: this.list
+            };
+            this.$emit("updatelist", card);
+        },
+
+        toggleCheck: function(item) {
+            item.checked = !item.checked;
+            // TODO: use reference to card object, because multiple cards can have same title/list
+            this.updateList();
+        },
+
+        addItem: function() {
+            // TODO: verify input before adding item
+            value = this.$refs.item_name.value;
+
+            this.$refs.item_name.value = "";
+
+            new_item = {
+                value: value,
+                checked: false,
+            };
+
+            this.list.push(new_item);
+            this.updateList();
+        },
+
+        closeMenu: function() {
+            this.$emit("close-card-menu");
+        }
+
+    },
+
+    template: `
+        <div id="card-popup">
+            <input class="editable-title" v-bind:value="title">
+            <button v-on:click="closeMenu">Close</button>
+            <div id="checklist">
+                <label class="container" v-for="item in list">{{ item.value }}
+                    <input type="checkbox" class="mark" v-bind:checked="item.checked" v-on:click="toggleCheck(item)">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+            <div>
+                <!-- TODO: only show prompt to add item after button press -->
+                <!-- <button id="add-it em" >Add an Item</button> -->
+                <input ref="item_name" id="item-name"/>
+                <button id="confirm-add-item" v-on:click="addItem">Add</button>
+                <!-- <button id="cancel-add-item">X</button> -->
             </div>
         </div>
     `
