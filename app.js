@@ -161,11 +161,15 @@ Vue.component("box", {
         },
     },
     template: `
-        <div class="box">
-            <input class="editable-title" :value="boxRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
-            <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
+        <div class="box" style="display:flex; flex-direction:column;flex:0 0 auto;">
+            <div>
+                <input class="editable-title" :value="boxRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
+                <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
+            </div>
             <!-- TODO: add key to cards -->
-            <card v-for="card in boxRef.cards" v-bind="card"></card>
+            <div style="overflow-y:auto;flex:1 1 auto;">
+                <card v-for="card in boxRef.cards" v-bind="card"></card>
+            </div>
             <blankcard @add-card="addCard"></blankcard>
         </div>
     `

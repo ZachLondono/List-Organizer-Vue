@@ -63,15 +63,16 @@ body {
     background-color: rgb(235, 235, 235);
     border: 1px solid rgb(225, 225, 225);
     border-radius: 5px;
+
+    max-height: calc(100vh - 120px);
 }
 
 #empty-box {
-    background-color: rgb(255, 255, 255);
-    opacity: 65%;
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 #empty-box:hover {
-    opacity: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 #box-prompt {
@@ -98,9 +99,14 @@ body {
     border-radius: 5px;
 }
 
+#empty-card {
+    background-color: rgba(245, 245, 245, 0);
+    border: 1px solid rgb(225, 225, 225, 0);
+}
+
 #empty-card:hover {
-    background-color: rgb(160, 160, 160);
-    border: 1px solid rgb(160, 160, 160);
+    background-color: rgba(225, 225, 225, 1);
+    border: 1px solid rgb(215, 215, 215);
     border-radius: 5px;
 }
 
@@ -170,8 +176,8 @@ body {
 }
 
 .circle {
-    width: 3px;
-    height: 3px;
+    width: 15%;
+    height: 15%;
     margin: 2px auto;
     background: rgb(170, 170, 170);
     background-color: rgb(170, 170, 170);
