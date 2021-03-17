@@ -56,6 +56,7 @@ const board = Vue.component("board", {
     
     methods: {
         addBox: function (newBox) {
+            newBox.id = this.board.boxes.length;
             this.board.boxes.push(newBox);
             this.$nextTick(() => this.updateWidth());
         },
@@ -108,8 +109,7 @@ const board = Vue.component("board", {
             this.cardMenuBoxRef = boxRef;
             let cards = this.cardMenuBoxRef.cards;
             for (i = 0; i < cards.length; i++) {
-                if (cards[i].title == selectedCard.title) {
-                    // TODO: pass reference to card object when creating card, because cards may have the same title
+                if (cards[i] == selectedCard) {
                     this.displayCardMenu = true;
                     this.cardMenuCardRef = cards[i];
                     return;
@@ -150,7 +150,7 @@ const board = Vue.component("board", {
             </div>
             <div id="wrapper" ref="boardCnt">
                 <!-- TODO: add key to boxes -->
-                <box v-for="box in board.boxes" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox" @card-selected="showCardMenu"></box>
+                <box v-for="box in board.boxes" v-bind:key="box.id" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox" @card-selected="showCardMenu"></box>
                 <blankbox @add-box="addBox" @edit="saveBoard"></blankbox>
             </div>
             <cardmenu v-if="displayCardMenu" v-bind:cardRef="cardMenuCardRef" @updatelist="updateCard" @close-card-menu="hideCardMenu"></cardmenu>
@@ -181,6 +181,7 @@ Vue.component("box", {
     },
     methods: {
         addCard: function (newCard) {
+            newCard.id = this.boxRef.cards.length;
             this.boxRef.cards.push(newCard);
             this.$emit('edit');
         },
@@ -214,7 +215,7 @@ Vue.component("box", {
             </div>
             <!-- TODO: add key to cards --> 
             <div style="overflow-y:auto;flex:1 1 auto;">
-                <card v-for="card in boxRef.cards" v-bind:cardRef="card" @selected="showCardMenu"></card>
+                <card v-for="card in boxRef.cards" v-bind:key="card.id" v-bind:cardRef="card" @selected="showCardMenu"></card>
             </div>
             <blankcard @add-card="addCard"></blankcard>
         </div>
