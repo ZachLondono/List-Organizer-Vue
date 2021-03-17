@@ -149,7 +149,6 @@ const board = Vue.component("board", {
                 <span style="font-size:12px" ref="saveMsg">Saved</span>
             </div>
             <div id="wrapper" ref="boardCnt">
-                <!-- TODO: add key to boxes -->
                 <box v-for="box in board.boxes" v-bind:key="box.id" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox" @card-selected="showCardMenu"></box>
                 <blankbox @add-box="addBox" @edit="saveBoard"></blankbox>
             </div>
@@ -212,8 +211,7 @@ Vue.component("box", {
             <div>
                 <input class="editable-title" :value="boxRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
                 <kebabmenu @kebab-selected="menuSelect" v-bind:options="options"></kebabmenu>
-            </div>
-            <!-- TODO: add key to cards --> 
+            </div> 
             <div style="overflow-y:auto;flex:1 1 auto;">
                 <card v-for="card in boxRef.cards" v-bind:key="card.id" v-bind:cardRef="card" @selected="showCardMenu"></card>
             </div>
@@ -429,16 +427,11 @@ Vue.component("cardmenu", {
     methods: {
 
         updateList: function() {
-            card = {
-                title: this.cardRef.title,
-                list: this.cardRef.list
-            };
-            this.$emit("updatelist", card);
+            this.$emit("updatelist", this.cardRef);
         },
 
         toggleCheck: function(item) {
             item.checked = !item.checked;
-            // TODO: use reference to card object, because multiple cards can have same title/list
             this.updateList();
         },
 
@@ -457,6 +450,11 @@ Vue.component("cardmenu", {
             this.updateList();
         },
 
+        updateTitle: function() {
+            this.cardRef.title = this.$refs.title.value;
+            this.updateList();
+        },
+
         closeMenu: function() {
             this.$emit("close-card-menu");
         }
@@ -465,7 +463,7 @@ Vue.component("cardmenu", {
 
     template: `
         <div id="card-popup">
-            <input class="editable-title" v-bind:value="cardRef.title">
+            <input class="editable-title" v-bind:value="cardRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
             <button v-on:click="closeMenu">Close</button>
             <div id="checklist">
                 <label class="container" v-for="item in cardRef.list">{{ item.value }}
