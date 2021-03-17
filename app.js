@@ -135,8 +135,7 @@ const board = Vue.component("board", {
                 } 
             }
 
-        }
-
+        },
 
     },
     
@@ -152,6 +151,8 @@ const board = Vue.component("board", {
                 <box v-for="box in board.boxes" v-bind:key="box.id" v-bind:boxRef="box" @edit="saveBoard" @remove-box="removeBox" @card-selected="showCardMenu"></box>
                 <blankbox @add-box="addBox" @edit="saveBoard"></blankbox>
             </div>
+
+            <div v-if="displayCardMenu" v-on:click="hideCardMenu" style="width:100vw; height:100vh; background-color: rgba(0,0,0,0.35); position: absolute; left: 0; top: 0;"></div>
             <cardmenu v-if="displayCardMenu" v-bind:cardRef="cardMenuCardRef" @updatelist="updateCard" @close-card-menu="hideCardMenu"></cardmenu>
         </div>
     `
@@ -462,21 +463,23 @@ Vue.component("cardmenu", {
     },
 
     template: `
-        <div id="card-popup">
-            <input class="editable-title" v-bind:value="cardRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
-            <button v-on:click="closeMenu">Close</button>
-            <div id="checklist">
-                <label class="container" v-for="item in cardRef.list">{{ item.value }}
-                    <input type="checkbox" class="mark" v-bind:checked="item.checked" v-on:click="toggleCheck(item)">
-                    <span class="checkmark"></span>
-                </label>
-            </div>
-            <div>
-                <!-- TODO: only show prompt to add item after button press -->
-                <!-- <button id="add-it em" >Add an Item</button> -->
-                <input ref="item_name" id="item-name"/>
-                <button id="confirm-add-item" v-on:click="addItem">Add</button>
-                <!-- <button id="cancel-add-item">X</button> -->
+        <div id="popup-wrapper">
+            <div id="card-popup">
+                <input class="editable-title" v-bind:value="cardRef.title" v-on:keyup.enter="updateTitle" v-on:blur="updateTitle" ref="title">
+                <button v-on:click="closeMenu" style="float:right">Close</button>
+                <div id="checklist">
+                    <label class="container" v-for="item in cardRef.list">{{ item.value }}
+                        <input type="checkbox" class="mark" v-bind:checked="item.checked" v-on:click="toggleCheck(item)">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div>
+                    <!-- TODO: only show prompt to add item after button press -->
+                    <!-- <button id="add-it em" >Add an Item</button> -->
+                    <input ref="item_name" id="item-name"/>
+                    <button id="confirm-add-item" v-on:click="addItem">Add</button>
+                    <!-- <button id="cancel-add-item">X</button> -->
+                </div>
             </div>
         </div>
     `

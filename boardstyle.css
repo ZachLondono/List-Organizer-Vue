@@ -33,7 +33,6 @@ body {
     height: 25px;
     position:fixed;
     top: 45px;
-    z-index:100;
     margin: 10px;
 }
 
@@ -243,15 +242,19 @@ body {
 *   Card Menu Styles
 */
 
+#popup-wrapper {
+    position: absolute;
+    left: 50%;
+}
+
 #card-popup {
     background-color: rgb(225, 225, 225);
     border: 1px solid rgb(215, 215, 215);
     border-radius: 5px;
     padding: 5px;
     width: 500px;
-    position: absolute;
-    top: 200px;
-    left: 400px;
+    position: relative;
+    left: -50%;
 }
 
 #checklist {
