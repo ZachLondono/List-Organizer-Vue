@@ -37,11 +37,11 @@ const getBoard = async function (boardId) {
     return board;
 }
 
-const boardList = async function () {
+const boardList = async function (uid) {
     const boards = [];
     await boardCollection.get().then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
-            boards.push(doc);
+            if (doc.data().board.uid == uid) boards.push(doc);
         });
     });
     return boards;

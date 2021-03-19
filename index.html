@@ -11,8 +11,8 @@
 <body>
 
     <div id="app">
-        <pageheader v-if="isLoggedIn"></pageheader>
-        <router-view></router-view>
+        <pageheader v-if="isLoggedIn" v-bind:uid="uid"></pageheader>
+        <router-view @userchange="userchange"></router-view>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>

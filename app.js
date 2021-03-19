@@ -342,11 +342,19 @@ Vue.component("blankcard", {
 });
 
 const boardselector = Vue.component("boardselector", {
+    
+    props: {
+        uid: {
+            type: String,
+            required: true
+        }
+    },
+    
     created() {
-        boardList().then((boardRefs) => {
+        boardList(this.uid).then((boardRefs) => {
             this.boardRefs = boardRefs;
             this.isLoading = false;
-        })
+        });
     },
     
     data: function () {
@@ -365,6 +373,7 @@ const boardselector = Vue.component("boardselector", {
             
             let newBoard = {
                 title: "New Board",
+                uid: this.uid,
                 boxes: []
             }
 
@@ -394,11 +403,19 @@ const boardselector = Vue.component("boardselector", {
 });
 
 const pageheader = Vue.component("pageheader", {
-    methods: {
-        goHome: function () {
-            router.push("/");
+    props: {
+        uid: {
+            type: String,
+            required: true
         }
     },
+
+    methods: {
+        goHome: function () {
+            router.push("/boards/" + this.uid);
+        }
+    },
+    
     template: `
         <div>
             <div id="header-padding"></div>
@@ -548,7 +565,9 @@ const login = Vue.component("login", {
             let password = this.$refs.password.value;
 
             signInFB(email, password)
-                .then(Response =>  Response.user.uid)
+                .then(Response =>  {
+                    this.$emit("userchange", Response.user.uid);
+                })
                 .catch( e => console.log("Error sigining in\n" + e.message));
         },
 
@@ -587,8 +606,9 @@ const router = new VueRouter({
             component: login
         },
         {
-            path: '/boards',
-            component: boardselector
+            path: '/boards/:uid',
+            component: boardselector,
+            props: true
         },
         { 
             path: '/board/:boardId',
@@ -604,6 +624,13 @@ var app = new Vue({
     data: {
         isLoggedIn: false,
         uid: ""
+    },
+    methods: {
+        userchange: function(userID) {
+            this.uid = userID;
+            this.isLoggedIn = true;
+            router.push("/boards/" + this.uid);
+        }
     },
     router
 });
