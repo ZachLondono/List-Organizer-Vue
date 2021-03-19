@@ -9,7 +9,10 @@ var firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 var db = firebase.firestore();  
+var auth = firebase.auth();		
+
 const boardCollection = db.collection("Board");
 
 const  createBoard =  function (board) {
@@ -42,4 +45,12 @@ const boardList = async function () {
         });
     });
     return boards;
+}
+
+const signInFB = async function (email, password) {
+    return auth.signInWithEmailAndPassword(email, password);
+}
+
+const createAccountFB = async function(email, password) {
+    return auth.createUserWithEmailAndPassword(email, password);
 }

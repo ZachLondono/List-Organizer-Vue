@@ -11,12 +11,15 @@
 <body>
 
     <div id="app">
-        <pageheader></pageheader>
+        <pageheader v-if="isLoggedIn"></pageheader>
         <router-view></router-view>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
+    <!-- Firebase Database -->
     <script src="https://www.gstatic.com/firebasejs/7.19.0/firebase-firestore.js"></script>
+    <!-- Firebase Authentication -->
+	<script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
     
     <script src="firebase.js"></script>
     <script src="app.js"></script>

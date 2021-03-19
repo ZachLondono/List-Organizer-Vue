@@ -535,6 +535,44 @@ Vue.component("kebabmenu", {
     `
 })
 
+const login = Vue.component("login", {
+
+    methods: {
+
+        validateEmail: function(email) {
+            return true;
+        },
+
+        loginUser: function () {
+            let email = this.$refs.email.value;
+            let password = this.$refs.password.value;
+
+            signInFB(email, password)
+                .then(Response =>  Response.user.uid)
+                .catch( e => console.log("Error sigining in\n" + e.message));
+        },
+
+        createUser: function () {
+            let email = this.$refs.email.value;
+            let password = this.$refs.password.value;
+            
+            createAccountFB(email, password).catch( e => console.log("Error creating account\n" + e.message));
+        }
+
+    },
+
+    template: `
+
+        <div style="width: 400px; border: 1px solid grey; border-radius: 3px; background-color: light-grey; margin: 30px">
+            <input ref="email" value="Email" style="margin: 10px"></input>
+            <input ref="password" value="Password" style="margin: 10px"></input>
+            <button v-on:click="loginUser" style="margin: 10px">Login</button>
+            <button v-on:click="createUser" style="margin: 10px">Sign Up</button>
+        </div>
+
+    `
+});
+
 const NotFoundComponent = {
     template: `
         <h1>404 Not Found</h1>
@@ -546,6 +584,10 @@ const router = new VueRouter({
     routes: [
         {   
             path: '/', 
+            component: login
+        },
+        {
+            path: '/boards',
             component: boardselector
         },
         { 
@@ -559,5 +601,9 @@ const router = new VueRouter({
 
 var app = new Vue({
     el: '#app',
+    data: {
+        isLoggedIn: false,
+        uid: ""
+    },
     router
 });
